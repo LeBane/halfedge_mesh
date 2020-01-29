@@ -147,6 +147,9 @@ class HalfedgeMesh:
 
             # TODO: make general to support non-triangular meshes
             # Facets vertices are in counter-clockwise order
+            if line[0] == 4:
+                print("Warning, 4 vertices facets are not implemented, you can only use Triangle to describe your figure.")
+                
             facet = Facet(line[1], line[2], line[3], index)
             facets.append(facet)
 
@@ -310,6 +313,41 @@ class Facet:
         # halfedge going ccw around this facet.
         self.halfedge = halfedge
 
+
+    # Return list of vertices that compose the facet
+    def vertices_that_compose_facet(self):
+        return [self.a,self.b,self.c]
+
+    
+        
+    #Return list of halfedges that compose the facet. We go next and next to see futher, if we implement faces more than 3 vertices.
+    def halfedges_that_compose_facet(self):
+        temp = self.halfedge.next
+        listHalfedge = [self.halfedge]
+        while temp != self.halfedge:
+            listHalfedge.append(temp)
+            temp = temp.next
+        return listHalfedge
+
+    #Return list of adjacent faces.
+    def adjacent_faces(self):
+        """
+        faces = []
+        temp = self.halfedge
+        faces.append(temp.opposite.facet)
+        temp = self.halfedge.next
+        while temp != self.halfedge:
+            faces.append(temp.opposite.facet)
+            temp = self.halfedge.next
+        return faces
+        """
+        listAdjacentFaces = []
+        listHalfedges = halfedges_that_compose_facet(self)
+        for i in listHalfedges:
+            listAdjacentFaces.append(i.opposite)
+
+        return listAdjacentFaces
+
     def __eq__(self, other):
         return self.a == other.a and self.b == other.b and self.c == other.c \
             and self.index == other.index and self.halfedge == other.halfedge
@@ -317,7 +355,7 @@ class Facet:
     def __hash__(self):
         return hash(self.halfedge) ^ hash(self.a) ^ hash(self.b) ^ \
             hash(self.c) ^ hash(self.index) ^ \
-            hash((self.halfedges, self.a, self.b, self.c, self.index))
+            hash((self.halfedge, self.a, self.b, self.c, self.index))
 
     def get_normal(self):
         """Calculate the normal of facet
@@ -355,8 +393,8 @@ class Halfedge:
         """Create a halfedge with given index.
         """
         self.opposite = opposite
-        self.next = next
-        self.prev = prev
+        self.next = next #Arete Suivante
+        self.prev = prev #Arete précédente
         self.vertex = vertex
         self.facet = facet
         self.index = index
